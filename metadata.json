@@ -1,0 +1,7 @@
+{
+  "name": "Corporate QR Hub",
+  "description": "A high-end professional QR code generation and management platform for corporate use, featuring dynamic redirects, custom landing pages, and advanced analytics.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,12 +1,17 @@
 
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corporate QR Hub</title>
+    <title>Corporate QR Hub | Premium Edition</title>
+    
+    <!-- Dependências Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -14,52 +19,628 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#faf5ff',
-                            100: '#f3e8ff',
-                            200: '#e9d5ff',
-                            300: '#d8b4fe',
-                            400: '#c084fc',
-                            500: '#a855f7',
-                            600: '#9333ea',
-                            700: '#7e22ce',
-                            800: '#6b21a8',
-                            900: '#581c87',
-                            950: '#3b0764',
+                            50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+                            400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce',
+                            800: '#6b21a8', 900: '#581c87', 950: '#3b0764',
                         },
-                        secondary: {
-                            500: '#ec4899',
-                        },
-                        accent: {
-                            500: '#10b981',
-                        }
+                        secondary: { 500: '#ec4899' },
+                        accent: { 500: '#10b981' }
                     }
                 }
             }
         }
     </script>
+
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d8b4fe; border-radius: 10px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #581c87; }
+        
+        section { display: none; }
+        section.active { display: block; animation: fadeIn 0.4s ease-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .qr-gradient-primary {
-            background: linear-gradient(135deg, #581c87 0%, #ec4899 100%);
+
+        #qr-preview-container { position: relative; }
+        #qr-logo-preview {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 44px;
+            height: 44px;
+            display: none;
+            object-fit: contain;
+            pointer-events: none;
         }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "recharts": "https://esm.sh/recharts@^3.6.0",
-    "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "qrcode.react": "https://esm.sh/qrcode.react@^4.2.0"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "qrcode.react": "https://esm.sh/qrcode.react@^4.2.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0"
   }
 }
 </script>
 </head>
-<body class="bg-primary-50/30 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
-    <div id="root"></div>
+<body class="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="main-sidebar" class="hidden lg:flex flex-col w-72 bg-primary-950 text-primary-300 p-6 border-r border-primary-900/50 shrink-0">
+            <div class="flex items-center gap-3 px-2 mb-10">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-secondary-500 flex items-center justify-center text-white shadow-lg shadow-primary-500/20">
+                    <i data-lucide="shield" class="fill-current"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-white font-bold text-lg leading-tight tracking-tight">QR Hub</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-primary-500">Corporate Elite</span>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1">
+                <button onclick="showView('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-white bg-white/10" id="nav-dashboard">
+                    <i data-lucide="layout" class="w-5 h-5"></i> Dashboard
+                </button>
+                <button onclick="showView('create')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium hover:text-white hover:bg-white/5" id="nav-create">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i> Criar Ativo
+                </button>
+            </nav>
+
+            <div class="mt-auto pt-6 border-t border-white/5">
+                <div class="p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div class="flex items-center gap-3 mb-1">
+                        <div class="w-8 h-8 rounded-full bg-primary-800 flex items-center justify-center text-white text-xs font-bold">AC</div>
+                        <div class="flex flex-col">
+                            <span class="text-white text-xs font-semibold">Admin Corp</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0">
+            <!-- Header -->
+            <header id="main-header" class="h-20 bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between px-8 shrink-0 transition-colors">
+                <div class="flex items-center gap-4">
+                    <button class="lg:hidden p-2 text-zinc-500"><i data-lucide="menu"></i></button>
+                    <h2 id="view-title" class="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Painel Principal</h2>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleDarkMode()" class="p-2.5 text-zinc-400 hover:text-primary-500 bg-zinc-50 dark:bg-zinc-800 rounded-xl transition-all">
+                        <i data-lucide="sun" id="sun-icon" class="hidden"></i>
+                        <i data-lucide="moon" id="moon-icon"></i>
+                    </button>
+                    <div class="h-8 w-px bg-zinc-100 dark:bg-zinc-800 hidden sm:block"></div>
+                    <div class="hidden sm:flex flex-col text-right">
+                        <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Servidor</span>
+                        <span class="text-[10px] text-accent-500 font-bold flex items-center justify-end gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse"></span> ONLINE
+                        </span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10">
+                
+                <!-- View: Dashboard -->
+                <section id="view-dashboard" class="active">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                        <div>
+                            <h1 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Ativos Digitais</h1>
+                            <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1 font-medium">QR Codes dinâmicos e páginas de contato profissional.</p>
+                        </div>
+                        <button onclick="showView('create')" class="bg-primary-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-primary-700 transition-all shadow-xl shadow-primary-500/20 flex items-center gap-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Novo Código
+                        </button>
+                    </div>
+
+                    <div id="qr-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Carregado dinamicamente -->
+                    </div>
+                </section>
+
+                <!-- View: Create/Edit -->
+                <section id="view-create">
+                    <div class="max-w-5xl mx-auto">
+                        <div class="flex items-center justify-between mb-8">
+                            <button onclick="showView('dashboard')" class="text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2 font-bold text-sm">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i> VOLTAR
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <!-- Editor Column -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <div class="bg-white dark:bg-zinc-900 rounded-2xl p-8 lg:p-10 shadow-xl border border-zinc-100 dark:border-zinc-800">
+                                    <h2 class="text-2xl font-black text-zinc-900 dark:text-white mb-6 tracking-tight">Configurar Ativo</h2>
+                                    
+                                    <div class="space-y-6">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Nome do Ativo</label>
+                                                <input id="qr-name" type="text" placeholder="Ex: Campanha de Marketing" class="w-full p-4 bg-zinc-50 dark:bg-zinc-800 dark:text-white border-none rounded-2xl focus:ring-2 focus:ring-primary-500 outline-none">
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Tipo de QR Code</label>
+                                                <select id="qr-type" onchange="toggleFormFields()" class="w-full p-4 bg-zinc-50 dark:bg-zinc-800 dark:text-white border-none rounded-2xl focus:ring-2 focus:ring-primary-500 outline-none appearance-none">
+                                                    <option value="DIRECT">Link Direto (URL Única)</option>
+                                                    <option value="MULTI">Página Multi-Links (Linktree)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Direct Link Section -->
+                                        <div id="section-direct" class="space-y-2">
+                                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">URL Final</label>
+                                            <input id="qr-direct-url" oninput="updatePreview()" type="url" placeholder="https://seusite.com.br" class="w-full p-4 bg-zinc-50 dark:bg-zinc-800 dark:text-white border-none rounded-2xl focus:ring-2 focus:ring-primary-500 outline-none">
+                                        </div>
+
+                                        <!-- Multi Link Section -->
+                                        <div id="section-multi" class="space-y-4 hidden">
+                                            <div class="flex items-center justify-between">
+                                                <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Gerenciar Links da Página</label>
+                                                <button onclick="addLinkRow()" class="text-[10px] font-black text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-full hover:opacity-80 transition-all">+ ADICIONAR</button>
+                                            </div>
+                                            <div id="multi-links-container" class="space-y-3">
+                                                <!-- Linhas de links dinâmicos -->
+                                            </div>
+                                        </div>
+
+                                        <div class="h-px bg-zinc-100 dark:bg-zinc-800 my-6"></div>
+
+                                        <!-- Branding & Logo -->
+                                        <div class="space-y-4">
+                                            <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest">Personalização & Logo Central</h3>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div class="space-y-2">
+                                                    <label class="text-[10px] font-bold text-zinc-500">Logo (URL ou Upload)</label>
+                                                    <div class="flex gap-2">
+                                                        <input id="qr-logo-input" oninput="updatePreview()" type="text" placeholder="https://.../logo.png" class="flex-1 p-3 bg-zinc-50 dark:bg-zinc-800 dark:text-white border-none rounded-xl text-xs focus:ring-1 focus:ring-primary-500 outline-none">
+                                                        <label class="cursor-pointer bg-zinc-100 dark:bg-zinc-800 px-4 py-3 rounded-xl hover:bg-zinc-200 transition-all">
+                                                            <i data-lucide="image" class="w-4 h-4 text-zinc-500"></i>
+                                                            <input type="file" class="hidden" accept="image/*" onchange="handleLogoUpload(this)">
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="flex gap-4">
+                                                    <div class="space-y-2 flex-1">
+                                                        <label class="text-[10px] font-bold text-zinc-500">Cor Código</label>
+                                                        <input id="qr-color-fg" oninput="updatePreview()" type="color" value="#581c87" class="w-full h-10 border-none bg-transparent cursor-pointer">
+                                                    </div>
+                                                    <div class="space-y-2 flex-1">
+                                                        <label class="text-[10px] font-bold text-zinc-500">Cor Fundo</label>
+                                                        <input id="qr-color-bg" oninput="updatePreview()" type="color" value="#ffffff" class="w-full h-10 border-none bg-transparent cursor-pointer">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-8 flex gap-4">
+                                            <button onclick="saveQRCode()" class="flex-1 bg-primary-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-primary-500/20 hover:bg-primary-700 hover:scale-[1.01] active:scale-[0.99] transition-all">
+                                                Finalizar e Gerar Código
+                                            </button>
+                                            <button onclick="downloadCurrentPreview()" class="px-8 bg-zinc-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-black transition-all flex items-center justify-center gap-2">
+                                                <i data-lucide="download"></i> PNG
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Column -->
+                            <div class="space-y-6">
+                                <div class="bg-white dark:bg-zinc-900 rounded-2xl p-8 border border-zinc-100 dark:border-zinc-800 flex flex-col items-center">
+                                    <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-6">Visualização do QR</span>
+                                    <div id="qr-preview-container" class="bg-white p-6 rounded-2xl shadow-lg border border-zinc-50">
+                                        <div id="qr-canvas-placeholder"></div>
+                                        <img id="qr-logo-preview" src="" alt="logo-central">
+                                    </div>
+                                    <div class="mt-8 text-center">
+                                        <p id="preview-type-desc" class="text-xs text-zinc-500 font-medium">Link Direto Selecionado</p>
+                                        <p id="preview-url-desc" class="text-[10px] font-mono text-primary-500 mt-1 truncate max-w-[200px]"></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-primary-950 rounded-xl p-6 text-white overflow-hidden relative">
+                                    <h4 class="font-bold text-sm mb-2 relative z-10">Dica de Conversão</h4>
+                                    <p class="text-[11px] text-primary-300 relative z-10 font-medium leading-relaxed">QR Codes com logo centralizado geram até 30% mais engajamento por passarem mais confiança visual.</p>
+                                    <i data-lucide="sparkles" class="absolute -bottom-4 -right-4 w-20 h-20 text-white/5 transform rotate-12"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Public Bio Page (Mock) -->
+                <section id="view-public-bio" class="h-full flex items-center justify-center bg-white dark:bg-zinc-950">
+                    <div id="public-bio-content" class="w-full max-w-md p-6 animate-in zoom-in-95 duration-500">
+                        <!-- Conteúdo dinâmico da página bio -->
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts de Lógica -->
+    <script>
+        let state = {
+            view: 'dashboard',
+            qrCodes: [],
+            editingId: null,
+            logoBase64: null
+        };
+
+        function init() {
+            const saved = localStorage.getItem('qr_hub_corporate_v4');
+            if (saved) state.qrCodes = JSON.parse(saved);
+            else {
+                state.qrCodes = [
+                    { id: '1', name: 'Catálogo Digital', type: 'DIRECT', url: 'https://seusite.com/catalogo', colorFg: '#581c87', colorBg: '#ffffff', logo: 'https://cdn-icons-png.flaticon.com/512/1000/1000946.png', scans: 142, createdAt: Date.now() }
+                ];
+                saveState();
+            }
+            renderQRList();
+            lucide.createIcons();
+            updatePreview();
+        }
+
+        function saveState() {
+            localStorage.setItem('qr_hub_corporate_v4', JSON.stringify(state.qrCodes));
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            document.getElementById('sun-icon').classList.toggle('hidden');
+            document.getElementById('moon-icon').classList.toggle('hidden');
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            const activeSection = document.getElementById(`view-${viewId}`);
+            if (activeSection) activeSection.classList.add('active');
+
+            const titles = { dashboard: 'Painel Principal', create: 'Configurar Ativo', 'public-bio': 'Visualização de Página' };
+            document.getElementById('view-title').innerText = titles[viewId] || 'QR Hub';
+
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-white/10', 'text-white'));
+            const activeNav = document.getElementById(`nav-${viewId}`);
+            if (activeNav) activeNav.classList.add('bg-white/10', 'text-white');
+
+            if (viewId === 'dashboard') {
+                renderQRList();
+                document.getElementById('main-sidebar').classList.remove('hidden');
+                document.getElementById('main-header').classList.remove('hidden');
+            } else if (viewId === 'public-bio') {
+                document.getElementById('main-sidebar').classList.add('hidden');
+                document.getElementById('main-header').classList.add('hidden');
+            }
+
+            state.view = viewId;
+            lucide.createIcons();
+            window.scrollTo(0,0);
+        }
+
+        function toggleFormFields() {
+            const type = document.getElementById('qr-type').value;
+            const directSection = document.getElementById('section-direct');
+            const multiSection = document.getElementById('section-multi');
+            const typeDesc = document.getElementById('preview-type-desc');
+
+            if (type === 'DIRECT') {
+                directSection.classList.remove('hidden');
+                multiSection.classList.add('hidden');
+                typeDesc.innerText = 'Link Direto Selecionado';
+            } else {
+                directSection.classList.add('hidden');
+                multiSection.classList.remove('hidden');
+                typeDesc.innerText = 'Página Multi-Links Selecionada';
+                if (document.getElementById('multi-links-container').children.length === 0) {
+                    addLinkRow('Website Principal', 'https://seusite.com.br');
+                    addLinkRow('Instagram', 'https://instagram.com/suaempresa');
+                }
+            }
+            updatePreview();
+        }
+
+        function addLinkRow(label = '', url = '') {
+            const container = document.getElementById('multi-links-container');
+            const rowId = 'row-' + Date.now() + Math.random();
+            const div = document.createElement('div');
+            div.id = rowId;
+            div.className = "flex gap-3 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-xl animate-in slide-in-from-right-2 transition-all";
+            div.innerHTML = `
+                <div class="flex-1 space-y-2">
+                    <input type="text" placeholder="Rótulo (ex: Instagram)" value="${label}" class="link-label w-full p-2.5 bg-white dark:bg-zinc-700 text-[10px] font-bold uppercase rounded-xl border-none focus:ring-1 focus:ring-primary-500">
+                    <input type="url" placeholder="https://..." value="${url}" class="link-url w-full p-2.5 bg-white dark:bg-zinc-700 text-xs rounded-xl border-none focus:ring-1 focus:ring-primary-500">
+                </div>
+                <button onclick="document.getElementById('${rowId}').remove()" class="p-4 text-secondary-500 hover:bg-secondary-50 dark:hover:bg-secondary-900/20 rounded-xl">
+                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function handleLogoUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    state.logoBase64 = e.target.result;
+                    document.getElementById('qr-logo-input').value = 'Imagem Carregada';
+                    updatePreview();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function updatePreview() {
+            const type = document.getElementById('qr-type').value;
+            const content = type === 'DIRECT' 
+                ? (document.getElementById('qr-direct-url').value || 'https://google.com')
+                : '#/public-bio'; 
+            
+            const fg = document.getElementById('qr-color-fg').value;
+            const bg = document.getElementById('qr-color-bg').value;
+            const logoInput = document.getElementById('qr-logo-input').value;
+            const logoToUse = (logoInput === 'Imagem Carregada') ? state.logoBase64 : logoInput;
+
+            const placeholder = document.getElementById('qr-canvas-placeholder');
+            placeholder.innerHTML = '';
+            
+            new QRCode(placeholder, {
+                text: content,
+                width: 180,
+                height: 180,
+                colorDark: fg,
+                colorLight: bg,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            const logoImg = document.getElementById('qr-logo-preview');
+            if (logoToUse) {
+                logoImg.src = logoToUse;
+                logoImg.style.display = 'block';
+            } else {
+                logoImg.style.display = 'none';
+            }
+
+            document.getElementById('preview-url-desc').innerText = content;
+        }
+
+        async function downloadCurrentPreview() {
+            const type = document.getElementById('qr-type').value;
+            const content = type === 'DIRECT' 
+                ? (document.getElementById('qr-direct-url').value || 'https://google.com')
+                : '#/public-bio'; 
+            const fg = document.getElementById('qr-color-fg').value;
+            const bg = document.getElementById('qr-color-bg').value;
+            const logoInput = document.getElementById('qr-logo-input').value;
+            const logo = (logoInput === 'Imagem Carregada') ? state.logoBase64 : logoInput;
+            const name = document.getElementById('qr-name').value || 'qrcode';
+
+            performDownload(content, fg, bg, logo, name);
+        }
+
+        async function performDownload(content, fg, bg, logo, name) {
+            const tempDiv = document.createElement('div');
+            const qr = new QRCode(tempDiv, {
+                text: content,
+                width: 1024,
+                height: 1024,
+                colorDark: fg,
+                colorLight: bg,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            setTimeout(() => {
+                const canvas = tempDiv.querySelector('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const save = () => {
+                    const link = document.createElement('a');
+                    link.download = `${name.replace(/\s+/g, '_')}_qr.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                };
+
+                if (logo) {
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.onload = () => {
+                        const size = canvas.width * 0.22;
+                        const pos = (canvas.width - size) / 2;
+                        ctx.drawImage(img, pos, pos, size, size);
+                        save();
+                    };
+                    img.onerror = save;
+                    img.src = logo;
+                } else {
+                    save();
+                }
+            }, 200);
+        }
+
+        async function downloadQR(id) {
+            const q = state.qrCodes.find(x => x.id === id);
+            if (!q) return;
+            const content = q.type === 'DIRECT' ? q.url : '#/view-bio-' + q.id;
+            performDownload(content, q.colorFg, q.colorBg, q.logo, q.name);
+        }
+
+        function saveQRCode() {
+            const name = document.getElementById('qr-name').value;
+            if (!name) return alert('Por favor, informe o nome do ativo.');
+
+            const type = document.getElementById('qr-type').value;
+            const colorFg = document.getElementById('qr-color-fg').value;
+            const colorBg = document.getElementById('qr-color-bg').value;
+            const logoInput = document.getElementById('qr-logo-input').value;
+            const logo = (logoInput === 'Imagem Carregada') ? state.logoBase64 : logoInput;
+
+            let links = [];
+            let url = '';
+
+            if (type === 'DIRECT') {
+                url = document.getElementById('qr-direct-url').value;
+                if (!url) return alert('Informe a URL final.');
+            } else {
+                const linkRows = document.querySelectorAll('#multi-links-container > div');
+                linkRows.forEach(row => {
+                    const label = row.querySelector('.link-label').value;
+                    const lUrl = row.querySelector('.link-url').value;
+                    if (label && lUrl) links.push({ label, url: lUrl });
+                });
+                if (links.length === 0) return alert('Adicione pelo menos um link à página.');
+            }
+
+            const qr = {
+                id: state.editingId || Date.now().toString(),
+                name, type, url, links, colorFg, colorBg, logo,
+                scans: state.editingId ? state.qrCodes.find(x => x.id === state.editingId).scans : 0,
+                createdAt: state.editingId ? state.qrCodes.find(x => x.id === state.editingId).createdAt : Date.now()
+            };
+
+            if (state.editingId) {
+                state.qrCodes = state.qrCodes.map(q => q.id === state.editingId ? qr : q);
+            } else {
+                state.qrCodes.unshift(qr);
+            }
+
+            saveState();
+            state.editingId = null;
+            state.logoBase64 = null;
+            showView('dashboard');
+        }
+
+        function renderQRList() {
+            const grid = document.getElementById('qr-grid');
+            grid.innerHTML = '';
+
+            state.qrCodes.forEach(q => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group overflow-hidden";
+                
+                const qrContent = q.type === 'DIRECT' ? q.url : '#/view-bio-' + q.id;
+                const fg = q.colorFg.replace('#', '');
+                const bg = q.colorBg.replace('#', '');
+                
+                card.innerHTML = `
+                    <div class="p-6 bg-zinc-50 dark:bg-zinc-800/50 flex flex-col items-center justify-center relative">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrContent)}&color=${fg}&bgcolor=${bg}" 
+                             class="w-32 h-32 object-contain rounded-2xl bg-white p-2">
+                        ${q.logo ? `<img src="${q.logo}" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 object-contain pointer-events-none">` : ''}
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-black text-zinc-900 dark:text-white truncate text-base tracking-tight">${q.name}</h3>
+                            <span class="text-[9px] font-black bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded uppercase tracking-tighter">${q.type === 'MULTI' ? 'Multi' : 'Direto'}</span>
+                        </div>
+                        <p class="text-[10px] text-zinc-500 truncate mb-5 font-medium">${q.type === 'MULTI' ? q.links.length + ' links configurados' : q.url}</p>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="editQR('${q.id}')" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-xl text-xs font-bold hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="settings-2" class="w-3.5 h-3.5"></i> Editar
+                            </button>
+                            <button onclick="downloadQR('${q.id}')" class="px-5 bg-zinc-900 text-white rounded-xl hover:bg-black shadow-lg transition-all flex items-center justify-center">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="previewPublic('${q.id}')" class="w-10 h-10 text-zinc-400 hover:text-primary-600 transition-all flex items-center justify-center">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteQR('${q.id}')" class="w-10 h-10 text-zinc-300 hover:text-secondary-500 transition-all flex items-center justify-center">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function deleteQR(id) {
+            if (confirm('Tem certeza que deseja excluir este ativo?')) {
+                state.qrCodes = state.qrCodes.filter(q => q.id !== id);
+                saveState(); renderQRList();
+            }
+        }
+
+        function editQR(id) {
+            const q = state.qrCodes.find(x => x.id === id);
+            if (!q) return;
+            state.editingId = id;
+            showView('create');
+            document.getElementById('qr-name').value = q.name;
+            document.getElementById('qr-type').value = q.type;
+            document.getElementById('qr-direct-url').value = q.url || '';
+            document.getElementById('qr-color-fg').value = q.colorFg;
+            document.getElementById('qr-color-bg').value = q.colorBg;
+            document.getElementById('qr-logo-input').value = q.logo ? (q.logo.startsWith('data:') ? 'Imagem Carregada' : q.logo) : '';
+            state.logoBase64 = q.logo && q.logo.startsWith('data:') ? q.logo : null;
+
+            document.getElementById('multi-links-container').innerHTML = '';
+            if (q.type === 'MULTI') {
+                q.links.forEach(l => addLinkRow(l.label, l.url));
+            }
+            toggleFormFields();
+            updatePreview();
+        }
+
+        function previewPublic(id) {
+            const q = state.qrCodes.find(x => x.id === id);
+            if (!q) return;
+
+            if (q.type === 'DIRECT') {
+                window.open(q.url, '_blank');
+            } else {
+                renderPublicBio(q);
+                showView('public-bio');
+            }
+        }
+
+        function renderPublicBio(qr) {
+            const container = document.getElementById('public-bio-content');
+            container.innerHTML = `
+                <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800 flex flex-col items-center p-10">
+                    <div class="w-24 h-24 bg-gradient-to-br from-primary-400 to-secondary-500 rounded-2xl p-1 shadow-xl mb-6 flex items-center justify-center">
+                        ${qr.logo ? `<img src="${qr.logo}" class="w-full h-full object-cover rounded-xl">` : `<i data-lucide="shield" class="text-white w-10 h-10"></i>`}
+                    </div>
+                    <h1 class="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-2 text-center">${qr.name}</h1>
+                    <p class="text-zinc-400 text-sm font-medium mb-10 uppercase tracking-widest text-[10px]">Acesse nossos canais oficiais</p>
+                    
+                    <div class="w-full space-y-4">
+                        ${qr.links.map(l => `
+                            <a href="${l.url}" target="_blank" class="block w-full py-5 px-8 bg-zinc-50 dark:bg-zinc-800 text-zinc-800 dark:text-white rounded-xl font-black text-center shadow-sm hover:scale-[1.02] hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all text-sm tracking-wide">
+                                ${l.label}
+                            </a>
+                        `).join('')}
+                    </div>
+
+                    <button onclick="showView('dashboard')" class="mt-12 text-[9px] font-black text-zinc-300 dark:text-zinc-700 uppercase tracking-[0.3em] hover:text-primary-500 transition-colors">
+                        VOLTAR AO DASHBOARD
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>

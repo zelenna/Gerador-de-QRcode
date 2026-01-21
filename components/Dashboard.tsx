@@ -36,7 +36,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Seus QR Codes</h1>
         <button
           onClick={onAdd}
-          className="flex items-center justify-center gap-2 bg-primary-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-primary-700 transition-colors shadow-lg shadow-primary-500/20"
+          className="flex items-center justify-center gap-2 bg-primary-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-primary-700 transition-colors shadow-lg shadow-primary-500/20"
         >
           <Plus size={20} />
           Criar Novo QR
@@ -82,16 +82,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredItems.map((item) => (
-            <div key={item.id} className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all overflow-hidden group">
+            <div key={item.id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all overflow-hidden group">
               <div className="p-4 flex flex-col items-center justify-center bg-zinc-50/50 dark:bg-zinc-800/50 relative">
                 <div className={`absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${item.status === 'active' ? 'bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-400' : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400'}`}>
                   {item.status === 'active' ? 'Ativo' : 'Inativo'}
                 </div>
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.type === QRType.URL ? item.content : `#/view/${item.id}`)}&color=${item.style.fgColor.replace('#', '')}&bgcolor=${item.style.bgColor.replace('#', '')}`}
-                  alt={item.name}
-                  className="w-32 h-32 object-contain"
-                />
+                <div className="relative w-32 h-32 flex items-center justify-center">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.type === QRType.URL ? item.content : `#/view/${item.id}`)}&color=${item.style.fgColor.replace('#', '')}&bgcolor=${item.style.bgColor.replace('#', '')}`}
+                    alt={item.name}
+                    className="w-full h-full object-contain"
+                  />
+                  {item.style.includeLogo && item.style.logoUrl && (
+                    <img src={item.style.logoUrl} className="absolute w-8 h-8 object-contain pointer-events-none" alt="logo" />
+                  )}
+                </div>
               </div>
               <div className="p-5">
                 <div className="flex justify-between items-start mb-1">
@@ -109,14 +114,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2 pt-2">
-                   <button onClick={() => onEdit(item.id)} className="flex-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 py-2 rounded-lg text-sm font-medium hover:bg-primary-100 hover:text-primary-700 dark:hover:bg-primary-900/40 dark:hover:text-primary-300 transition-all flex items-center justify-center gap-1">
+                   <button onClick={() => onEdit(item.id)} className="flex-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 py-2 rounded-xl text-sm font-medium hover:bg-primary-100 hover:text-primary-700 dark:hover:bg-primary-900/40 dark:hover:text-primary-300 transition-all flex items-center justify-center gap-1">
                      <Edit size={14} /> Editar
                    </button>
-                   <button onClick={() => onAnalytics(item.id)} className="p-2 bg-accent-50 dark:bg-accent-900/20 text-accent-600 dark:text-accent-400 rounded-lg hover:bg-accent-100 transition-colors">
+                   <button onClick={() => onAnalytics(item.id)} className="p-2 bg-accent-50 dark:bg-accent-900/20 text-accent-600 dark:text-accent-400 rounded-xl hover:bg-accent-100 transition-colors">
                      <BarChart2 size={18} />
                    </button>
                    <div className="relative group/menu">
-                      <button className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                      <button className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
                         <MoreVertical size={18} />
                       </button>
                       <div className="absolute right-0 bottom-full mb-2 hidden group-hover/menu:block bg-white dark:bg-zinc-800 shadow-xl rounded-xl border border-gray-100 dark:border-zinc-700 py-2 w-48 z-10 animate-in fade-in slide-in-from-bottom-2">
@@ -154,7 +159,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-primary-50 dark:bg-primary-900/20 rounded p-1">
+                      <div className="w-10 h-10 bg-zinc-50 dark:bg-primary-900/20 rounded p-1">
                         <img src={`https://api.qrserver.com/v1/create-qr-code/?size=40x40&data=${encodeURIComponent(item.content)}`} className="w-full h-full opacity-80" alt="" />
                       </div>
                       <div>

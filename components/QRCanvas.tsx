@@ -11,7 +11,7 @@ interface QRCanvasProps {
 
 export const QRCanvas: React.FC<QRCanvasProps> = ({ value, style, size = 256 }) => {
   return (
-    <div className="bg-white p-4 shadow-sm border border-gray-100 rounded-xl inline-block" id="qr-export-container">
+    <div className="bg-white p-4 shadow-sm border border-gray-100 rounded-2xl inline-block" id="qr-export-container">
       <QRCodeCanvas
         value={value}
         size={size}
@@ -24,7 +24,7 @@ export const QRCanvas: React.FC<QRCanvasProps> = ({ value, style, size = 256 }) 
                 src: style.logoUrl,
                 height: size * (style.logoSize / 100),
                 width: size * (style.logoSize / 100),
-                excavate: true,
+                excavate: true, // This clears the modules behind the logo
               }
             : undefined
         }

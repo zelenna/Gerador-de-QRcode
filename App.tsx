@@ -50,7 +50,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-primary-50/30 dark:bg-zinc-950 transition-colors">
+    <div className="min-h-screen flex bg-white dark:bg-zinc-950 transition-colors">
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-72 bg-primary-950 text-primary-300 p-6 border-r border-primary-900/50 shrink-0">
         <div className="flex items-center gap-3 px-2 mb-10">
@@ -85,7 +85,7 @@ const App: React.FC = () => {
         </nav>
 
         <div className="mt-auto space-y-4">
-          <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-primary-800 flex items-center justify-center text-white text-xs font-bold">JD</div>
               <div className="flex flex-col">
